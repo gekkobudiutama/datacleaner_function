@@ -1,2 +1,2 @@
 # iharalabequipment
-Python tools for to make life in Ihara laboratory easier 
+Try to corporate this tools to your daily life in Ihara (or probably other) Laboratory.
