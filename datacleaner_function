@@ -143,6 +143,6 @@ def datacleaner(input_data, column_name = "Value", header="infer", separator=","
         print("\n")
 
 # usage example
-datacleaner("/Users/gekkopatria/Desktop/Michelangelo/20170401-2.csv", date="2017-04-01", header=3,
+datacleaner("/Users/name1/name2/name3/20170401-2.csv", date="2017-04-01", header=3,
                   nulldata_finder="ON", minusdata_finder="OFF", nighttimeerror_finder="OFF", outliers_finder="OFF",
                   minusdata_handler="OFF", nighttimeerror_handler="OFF", nulldata_handler="Linear", outliers_handler="OFF")
