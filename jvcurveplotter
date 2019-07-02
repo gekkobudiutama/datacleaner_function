@@ -1,0 +1,123 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+
+def xyxplotter(data1, header="infer", separator=",", column_number=6,
+               colors=["red", "green", "blue", "yellow", "purple", "orange", "gray", "brown"],
+               title="Title", xlabel="X label", ylabel="Y label", type="scatter", legend=(), legendswitch="ON", grid=None,
+               xmin=0, xmax=0, ymin=0, ymax=0,
+               draw="all", cdraw_starts=1, cdraw_ends=3, ddraw=[1, 3], markersize=50):
+
+    # Calculating number of columns and giving each column names
+    dcolumn = []
+    for num in range(int(column_number/2)):
+        dcolumn.extend(("x"+str(num), "y"+str(num)))
+
+    # Importing csv (txt) data to the program
+    data = pd.read_csv(data1, header=header, sep=separator, names=dcolumn)
+    plt.style.use('classic')
+
+    # Printing the first and last five rows of the table
+    print(data.head())
+    print(data.tail())
+
+    # Plotting the table
+    if draw == "all":
+        ax = data.plot(kind=type, x="x0", y="y0", color=colors[0], grid=grid, s=markersize)
+        for z in range(int(len(data.columns) / 2) - 1):
+            data.plot(kind=type, x="x" + str(z + 1), y="y" + str(z + 1), color=colors[z + 1], ax=ax, grid=grid, s=markersize)
+    elif draw == "partial_continuous":
+        ax = data.plot(kind=type, x="x" + str(cdraw_starts-1), y="y" + str(cdraw_starts-1), color=colors[0], grid=grid, s=markersize)
+        number_of_graph = cdraw_ends-cdraw_starts
+        for z in range(number_of_graph):
+            data.plot(kind=type, x="x" + str(cdraw_starts + z), y="y" + str(cdraw_starts + z),
+                      color=colors[cdraw_starts + z], ax=ax, grid=grid, s=markersize)
+    elif draw == "partial_discontinuous":
+        ax = data.plot(kind=type, x="x" + str(ddraw[0]-1), y="y" + str(ddraw[0]-1), color=colors[0], grid=grid, s=markersize)
+        ddraw.pop(0)
+        for z in ddraw:
+            data.plot(kind=type, x="x" + str(z-1), y="y" + str(z-1), color=colors[z-1], ax=ax, grid=grid, s=markersize)
+    plt.xlabel(xlabel, fontsize=17)
+    plt.ylabel(ylabel, fontsize=17)
+    plt.tick_params(axis='both', which='major', labelsize=14)
+    plt.title(title, fontsize=17)
+
+    if legendswitch=="ON":
+        plt.legend(legend, loc='best')
+
+    # Setting limits to x axis and y axis
+    if xmin != 0:
+        plt.xlim(left=xmin)
+    if xmax != 0:
+        plt.xlim(right=xmax)
+    if ymin != 0:
+        plt.ylim(bottom=ymin)
+    if ymax != 0:
+        plt.ylim(top=ymax)
+
+    plt.grid()
+    plt.show()
+
+def xyplotter(data1, header="infer", separator=",", column_number=6,
+              title="Title", xlabel="X label", ylabel="Y label", type="scatter", legend=(), legendswitch="ON",
+              grid=None, xmin=0, xmax=0, ymin=0, ymax=0,
+              draw="all", cdraw_starts=1, cdraw_ends=3, ddraw=[1, 3], markersize=50):
+
+    # Calculating number of columns and giving each column names
+    xycolumn = ["x0"]
+    ycolumn = []
+    for num in range(int(column_number-1/2)):
+        ycolumn.append("y"+str(num))
+    xycolumn.extend(ycolumn)
+
+    # Importing csv (txt) data to the program
+    data = pd.read_csv(data1, header=header, sep=separator, names=xycolumn, index_col="x0")
+    plt.style.use('classic')
+
+    # Printing the first and last five rows of the table
+    print(data.head())
+    print(data.tail())
+
+    # Plotting the table
+    if draw == "all":
+        ax = data.plot(kind=type, grid=grid, lw=2.5)
+    elif draw == "partial_continuous":
+        ax = data.plot(kind=type, y="y" + str(cdraw_starts-1), grid=grid, s=markersize)
+        number_of_graph = cdraw_ends - cdraw_starts
+        for z in range(number_of_graph):
+            data.plot(kind=type, y="y" + str(cdraw_starts + z), ax=ax, grid=grid, s=markersize)
+    elif draw == "partial_discontinuous":
+        ax = data.plot(kind=type, y="y" + str(ddraw[0]-1), grid=grid, s=markersize)
+        ddraw.pop(0)
+        for z in ddraw:
+            data.plot(kind=type, y="y" + str(z-1), ax=ax, grid=grid, s=markersize)
+    plt.xlabel(xlabel, fontsize=17)
+    plt.ylabel(ylabel, fontsize=17)
+    plt.tick_params(axis='both', which='major', labelsize=15)
+    plt.title(title, fontsize=12)
+
+    if legendswitch=="ON":
+        plt.legend(legend, loc='best')
+        #plt.legend(legend, loc='center left', bbox_to_anchor=(1, 0.5))
+
+    """box = ax.get_position()
+    ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])"""
+
+    # Setting limits to x axis and y axis
+    if xmin != 0:
+        plt.xlim(left=xmin)
+    if xmax != 0:
+        plt.xlim(right=xmax)
+    if ymin != 0:
+        plt.ylim(bottom=ymin)
+    if ymax != 0:
+        plt.ylim(top=ymax)
+
+    #plt.grid()
+    plt.show()
+
+
+xyplotter("/Users/gekkopatria/Desktop/Picasso/Lab/Documents/Experiment Results/181225/811225 20 min sputtering.txt", header=17,
+           separator="\t", column_number=2,  type="line",legendswitch="OFF",
+          legend=('2.67 ppm', '5.34 ppm', '10.7 ppm',),
+           title="Transparency of CNT film with short dispersion time and hot water cleaning",
+           xlabel="volt (V)", ylabel="current density (mA/cm2)")
