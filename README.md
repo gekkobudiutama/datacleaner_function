@@ -1,2 +1,2 @@
-# datacleaner_function
-Function for data cleaning and standard preprocessing. written in python
+# iharalabequipment
+Python tools for to make life in Ihara laboratory easier 
