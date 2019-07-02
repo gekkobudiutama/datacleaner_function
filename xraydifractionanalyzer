@@ -1,0 +1,53 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+pd.options.mode.chained_assignment = None
+
+# Importing and resampling measurement data
+xrd_data = pd.read_csv('/Users/gekkopatria/Desktop/Picasso/Lab/Documents/Experiment Results/181029 TiO2 XRD gekko/181029 TiO2 spray anneal 450 gonio scan long_1_1.csv',
+                       header=27, sep=",", names=['Angle (2theta)','Intensity'])
+print('Measurement Data:')
+print(xrd_data.head())
+print('\n')
+
+xrd_data['Rounded Angle (2theta)'] = xrd_data['Angle (2theta)'].apply(round, ndigits=1)
+resampled_data = pd.DataFrame(xrd_data.groupby('Rounded Angle (2theta)').mean().Intensity)
+
+
+# Finding peaks
+resampled_data['Shifted'] = resampled_data['Intensity'].shift(15)
+resampled_data['Outliers'] = resampled_data['Intensity'].divide(resampled_data['Shifted'])
+peaks = resampled_data.loc[resampled_data['Outliers']>1.5]
+print(peaks)
+
+# Reference data input
+ref_data = pd.read_csv('/Users/gekkopatria/Desktop/Nikola Tesla/Lab/Documents/Experiment Results/181024 TiO2 XRD gekko/TixOy XRD references/TiO2A.txt', header=5, sep=',', index_col='theta')
+print('Reference Data:')
+print(ref_data.head())
+print('\n')
+
+# Comparing measurement data with reference data
+# The smaller the number of "Difference with reference" is better
+min_difference = []
+for data_peaks in peaks.index:
+    small_difference = []
+    for ref_peaks in ref_data.index:
+        difference=abs(data_peaks-ref_peaks)
+        if difference < 0.3:
+            small_difference.append(difference)
+    if small_difference != []:
+        min_difference.append(min(small_difference))
+    else:
+        min_difference.append(np.nan)
+df_difference = pd.DataFrame(min_difference)
+peaks['Difference'] = df_difference.values
+print(peaks)
+print('\n')
+print('Number of peaks match:', len(peaks['Difference'].dropna()))
+print('Difference with reference:', peaks['Difference'].mean())
+
+# Plotting less noisy xrd pattern
+plt.style.use('classic')
+xrd_data.plot(kind='line', y='Intensity')
+#resampled_data.plot(kind='line', y='Intensity')
+plt.show()
