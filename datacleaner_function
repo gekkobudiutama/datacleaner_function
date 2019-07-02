@@ -1,0 +1,148 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+from scipy import stats
+import numpy as np
+
+def datacleaner(input_data, column_name = "Value", header="infer", separator=",", index="Time", date="2017-04-01", time_scale="1T",
+                      nulldata_finder="ON", minusdata_finder="ON", nighttimeerror_finder="ON", outliers_finder="ON",
+                      morning_starts="00:00:00", morning_ends="05:00:00", night_starts="18:00:00",
+                      night_ends="23:59:00", minusdata_handler="OFF", nighttimeerror_handler="OFF", nulldata_handler="OFF", outliers_handler = "OFF"):
+
+    # Importing data and cleaning up DataFrame
+    global minus_datas, nighttime_error, nosunlight, outliers
+    data = pd.read_csv(input_data, header=header, index_col=index, sep=separator)
+    data = data.drop("END")
+    data.index = pd.to_datetime(date + " " + data.index)
+    df = data.resample(time_scale).asfreq()
+    """print(df.head())
+    print(df.tail())
+    print("\n")"""
+
+    # Finding Minus Data
+    if minusdata_finder == "ON":
+        minus_datas = df.loc[df[column_name] < 0]
+        print("\n")
+        print("Minus values: ")
+        print(minus_datas)
+        print("\n")
+    else:
+        print("Minus data finder functionality turned OFF")
+        print("\n")
+
+    # Finding Night time error
+    if nighttimeerror_finder == "ON":
+        earlymorning = df.loc[date + " " + morning_starts:date + " " + morning_ends]
+        nighttime = df.loc[date + " " + night_starts:date + " " + night_ends]
+        nosunlight = pd.concat([earlymorning, nighttime])
+        nighttime_error = df.loc[df.index.isin(nosunlight.index) & (df[column_name]!=0)]
+        print("Night time Error")
+        print(nighttime_error)
+        print("\n")
+    else:
+        print("Night time errors finder functionality turned OFF")
+        print("\n")
+
+    # Finding NaN Data
+    if nulldata_finder == "ON":
+        df["Nulls Data"] = pd.isna(df[column_name])
+        null_datas = df.loc[df["Nulls Data"] == True]
+        null_datas = null_datas.drop(columns=["Nulls Data"])
+        print("Null datas: ")
+        print(null_datas)
+        print("\n")
+    else:
+        print("NaN data finder functionality turned OFF")
+        print("\n")
+
+    # Finding Outliers
+    if outliers_finder == "ON":
+        data["Shifted"] = data[column_name].shift(1)
+        data["Outliers"] = data[column_name].divide(data["Shifted"])
+        outliers = data.loc[abs(data["Outliers"])>5]
+        print("Outliers: ")
+        print(data)
+        print("\n")
+    else:
+        print("Outliers finder functionality turned OFF")
+        print("\n")
+
+    # Handling minus data
+    if minusdata_handler == "Zero":
+        minusdata_zero = df.replace(df[df[column_name] < 0], 0)
+        print("Minus datas zero")
+        print(minusdata_zero)
+        print("\n")
+    elif minusdata_handler == "Drop":
+        minusdata_dropped = df.drop(df[df[column_name] < 0].index)
+        print("Minus datas dropped")
+        print(minusdata_dropped)
+        print("\n")
+    else:
+        print("Minus data processor functionality turned OFF")
+        print("\n")
+
+    # Handling Nighttime Error
+    if nighttimeerror_handler == "Zero":
+        nighttimeerror_zero = df.replace(df[df.index.isin(nosunlight.index) & (df[column_name]!=0)], 0)
+        print("Nightime errors zero")
+        print(nighttimeerror_zero)
+        print("\n")
+    elif nighttimeerror_handler == "Drop":
+        nighttimeerror_dropped = df.drop(df[df.index.isin(nosunlight.index) & (df[column_name]!=0)].index)
+        print("Nightime errors dropped")
+        print(nighttimeerror_dropped)
+        print("\n")
+    else:
+        print("Minus data processor functionality turned OFF")
+        print("\n")
+
+
+    # Handling null datas
+    if nulldata_handler == "Drop":
+        nulldata_dropped = df.dropna()
+        nulldata_dropped = nulldata_dropped.drop(columns=["Nulls Data"])
+        print("Null datas dropped")
+        print(nulldata_dropped)
+        print("\n")
+    elif nulldata_handler == "Ffill":
+        nulldata_ffilled = df.fillna(method="ffill")
+        nulldata_ffilled = nulldata_ffilled.drop(columns=["Nulls Data"])
+        print("Null datas forward filled")
+        print(nulldata_ffilled)
+        print("\n")
+    elif nulldata_handler == "Bfill":
+        nulldata_bfilled = df.fillna(method="Bfill")
+        nulldata_bfilled = nulldata_bfilled.drop(columns=["Nulls Data"])
+        print("Null datas backward filled")
+        print(nulldata_bfilled)
+        print("\n")
+    elif nulldata_handler == "Zero":
+        nulldata_zeroed = df.fillna(0)
+        nulldata_zeroed = nulldata_zeroed.drop(columns=["Nulls Data"])
+        print("Null datas zeroed")
+        print(nulldata_zeroed)
+        print("\n")
+    elif nulldata_handler == "Linear":
+        nulldata_linear = df.interpolate()
+        nulldata_linear = nulldata_linear.drop(columns=["Nulls Data"])
+        print("Null datas linear filled")
+        print(nulldata_linear)
+        print("\n")
+    else:
+        print("Outliers processor functionality turned OFF")
+        print("\n")
+
+    # Handling Outliers
+    if outliers_handler == "Drop":
+        outliers_dropped = data.drop(data[abs(data["Outliers"])>5].index)
+        print("Outliers Dropped")
+        print(outliers_dropped)
+        print("\n")
+    else:
+        print("Outliers processor functionality turned OFF")
+        print("\n")
+
+# usage example
+datacleaner("/Users/gekkopatria/Desktop/Michelangelo/20170401-2.csv", date="2017-04-01", header=3,
+                  nulldata_finder="ON", minusdata_finder="OFF", nighttimeerror_finder="OFF", outliers_finder="OFF",
+                  minusdata_handler="OFF", nighttimeerror_handler="OFF", nulldata_handler="Linear", outliers_handler="OFF")
