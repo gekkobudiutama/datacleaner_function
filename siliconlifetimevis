@@ -1,0 +1,40 @@
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+def heatmap_visualizer(data = '/Users/gekkopatria/Desktop/Picasso/Project Programmer/Python/SiliconLifetime/2ohm_tio2_sputtering_beforeafter_zhr/as_fab.csv', slicing = 'Yes', x_min=-12.5, x_max=12.5, y_min=-12.5, y_max=12.5):
+    # Data slicing and pre-processing
+    df = pd.read_csv(data)
+    df_heatmap = df
+    if slicing == 'Yes':
+        xmin, ymin, xmax, ymax = x_min, y_min, x_max, y_max
+        df_xmin = df.loc[df['X'] > xmin]
+        df_ymin = df_xmin.loc[df_xmin['Y'] > ymin]
+        df_xmax = df_ymin.loc[df_ymin['X'] < xmax]
+        df_ymax = df_xmax.loc[df_xmax['Y'] < ymax]
+        df_heatmap = df_ymax.loc[:, ['X', 'Y', '1/e']]
+
+    elif slicing == 'No':
+        df_heatmap = df.loc[:, ['X', 'Y', '1/e']]
+
+    pivotted = df_heatmap.pivot('Y', 'X', '1/e')
+    dist = df_heatmap.loc[:, ['1/e']]
+    print('Average lifetime', dist.mean())
+
+    # Visualizing heatmap
+    fig= plt.figure(figsize=(5,4))
+    heatmap = sns.heatmap(pivotted, vmin=0, vmax=50)
+    plt.setp(heatmap.get_xticklabels(), visible=False)
+    plt.setp(heatmap.get_yticklabels(), visible=False)
+    heatmap.tick_params(axis='both', which='both', length=0)
+    plt.xlabel('X', fontsize=14), plt.ylabel('Y', fontsize=14)
+    plt.show()
+
+    # Visualizing distribution
+    fig= plt.figure(figsize=(8,2))
+    distribution = sns.distplot(dist, bins=20, kde=False, norm_hist=False, hist_kws=dict(edgecolor="black", linewidth=1))
+    distribution = plt.xlim(0, 50), plt.grid(True)
+    plt.show()
+
+heatmap_visualizer(data = '/Users/gekkopatria/Desktop/Picasso/Project Programmer/Python/SiliconLifetime/2ohm_tio2_sputtering_beforeafter_zhr/standard_hotplate_10min.csv',
+                   slicing='Yes', x_min=-12.5, y_min=0, x_max=0, y_max=12.5)
